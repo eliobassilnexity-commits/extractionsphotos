@@ -45,8 +45,8 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     pages_to_extract = len(doc) - nb_unique
 
     # --- Extraction des photos de désordres ---
-    extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
-    progress_bar = st.progress(0)
+    # extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
+    # progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
         page = doc[page_num]
         images = page.get_images(full=True)
@@ -59,10 +59,10 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             count += 1
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
-        progress_bar.progress((page_num+1)/pages_to_extract)
+        # progress_bar.progress((page_num+1)/pages_to_extract)
 
     st.success(f"✅ {count} photos de désordres extraites")
-    progress_bar.empty()
+    # progress_bar.empty()
     extraction_photos_msg.empty()
 
     # --- Extraction des plans ---
@@ -112,3 +112,4 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
+
