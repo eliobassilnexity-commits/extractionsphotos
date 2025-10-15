@@ -7,7 +7,7 @@ import os
 import shutil
 import re
 
-st.set_page_config(page_title="Extraction Photos PDF", layout="wide")
+st.set_page_config(page_title="Extraction des photos et des plans Archipad", layout="wide")
 st.title("📄 Extraction Photos PDF depuis Archipad")
 
 st.markdown("""
@@ -119,4 +119,5 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
