@@ -34,8 +34,9 @@ with col2:
         st.success(f"✅ Rapport PDF Archipad importé avec succès !")
 
 # --- Extraction si les deux fichiers sont chargés ---
-st.success(f"Extraction en cours ...")
+
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
+    st.success(f"Extraction en cours ...")
     output_folder = "Extraction_temp"
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
@@ -113,6 +114,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
+
 
 
 
