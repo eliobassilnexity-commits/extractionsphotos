@@ -92,7 +92,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             if match:
                 num = int(match.group(1))
                 if (num - 1) % 7 == 0:
-                    os.remove(os.path.join(output_folder, file))
+                   # os.remove(os.path.join(output_folder, file))
 
     # --- Vérification cohérence ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -119,5 +119,6 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
