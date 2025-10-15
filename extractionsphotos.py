@@ -72,7 +72,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         progress_bar.progress((page_num+1)/pages_to_extract)
     extraction_photos_msg.empty()
     progress_bar.empty()
-    st.success(f"✅ {count} photos de désordres extraites")
+    st.success(f"✅ Photos de désordres extraites")
 
     # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
@@ -83,7 +83,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
     extraction_plans_msg.empty()
-    st.success(f"✅ {st.session_state.nb_unique} plans extraits")
+    st.success(f"✅ Plans extraits")
 
     # --- Supprimer img1, img8, img15, …
     for file in os.listdir(output_folder):
@@ -119,3 +119,4 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
