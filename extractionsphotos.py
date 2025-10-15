@@ -44,7 +44,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     count = 0
     pages_to_extract = len(doc) - nb_unique
 
-    st.info("⏳ Extraction des images internes…")
+    st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
         page = doc[page_num]
@@ -59,17 +59,17 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
         progress_bar.progress((page_num+1)/pages_to_extract)
+progress_bar.empty()
+    st.success(f"✅ {count} photos de désordres extraites")
 
-    st.success(f"✅ {count} images internes extraites (img1, img2, …)")
-
-    st.info("⏳ Extraction des dernières pages en images…")
+    st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - nb_unique, len(doc))
     for idx, page_num in enumerate(last_pages, start=1):
         page = doc[page_num]
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
-    st.success(f"✅ Dernières pages extraites : {nb_unique} pages (P1, P2, …)")
+    st.success(f"✅ {nb_unique} plans extraits")
 
     # Supprimer img1, img8, img15, …
     for file in os.listdir(output_folder):
@@ -87,11 +87,11 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     st.info(f"🔍 Images restantes : {nb_img_restantes}, Lignes Excel 'Plan' : {nb_lignes_plan}")
 
     if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
-        st.error("❌ Incohérence détectée ! Vérifie le nombre de photos par désordre sur Archipad.")
+        st.error("❌ Incohérence détectée: vérifie le nombre de photos par désordre sur Archipad.")
         shutil.rmtree(output_folder)
         st.stop()
     else:
-        st.success("✅ Vérification OK : cohérence respectée")
+        st.success("✅ Vérification OK : nombre de photos par désordre respecté")
 
     # Création ZIP
     zip_path = "Extraction_finale.zip"
@@ -109,6 +109,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # Nettoyage
     shutil.rmtree(output_folder)
     os.remove(zip_path)
-    st.success("🧹 Nettoyage terminé")
+    #st.success("🧹 Nettoyage terminé")
+
 
 
