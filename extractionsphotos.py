@@ -74,6 +74,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
+
     st.success(f"✅ {nb_unique} plans extraits")
     extraction_plans_msg.empty()
 
@@ -100,15 +101,17 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
 
-    # --- Bouton téléchargement + réinitialisation ---
+    # --- Bouton téléchargement ---
     with open(zip_path, "rb") as f:
-        if st.download_button(
+        st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
             file_name="Extraction_finale.zip",
             mime="application/zip"
-        ):
-            # Nettoyage et réinitialisation
-            shutil.rmtree(output_folder)
-            os.remove(zip_path)
-            st.experimental_rerun()
+        )
+
+    # --- Bouton Nouvelle extraction ---
+    if st.button("🔄 Nouvelle extraction"):
+        shutil.rmtree(output_folder)
+        os.remove(zip_path)
+        st.experimental_rerun()
