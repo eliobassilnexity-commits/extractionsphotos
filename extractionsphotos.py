@@ -109,7 +109,3 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
-# --- Bouton Nouvelle extraction (rafraîchit la page) ---
-if st.button("🔄 Nouvelle extraction"):
-    st.experimental_rerun()
