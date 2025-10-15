@@ -63,7 +63,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
 
     st.success(f"✅ {count} photos de désordres extraites")
     # progress_bar.empty()
-    extraction_photos_msg.empty()
+    # extraction_photos_msg.empty()
 
     # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
@@ -112,4 +112,5 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
+
 
