@@ -36,7 +36,7 @@ with col2:
 # --- Extraction si les deux fichiers sont chargés ---
 
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
-    st.success(f"Extraction en cours ...")
+    st.success(f"Extraction photos en cours ...")
     output_folder = "Extraction_temp"
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
@@ -64,6 +64,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         # progress_bar.progress((page_num+1)/pages_to_extract)
 
     st.success(f"✅ {count} photos de désordres extraites")
+    st.success(f"Extraction plans en cours ...")
     # progress_bar.empty()
     # extraction_photos_msg.empty()
 
@@ -114,6 +115,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
+
 
 
 
