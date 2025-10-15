@@ -16,6 +16,14 @@ Cette application permet d'extraire :
 - Vérification automatique de cohérence entre le nombre de désordres et le nombre de photos par désordre
 """)
 
+# --- Initialisation des états ---
+if "extraction_photos_ok" not in st.session_state:
+    st.session_state.extraction_photos_ok = False
+if "extraction_plans_ok" not in st.session_state:
+    st.session_state.extraction_plans_ok = False
+if "count_photos" not in st.session_state:
+    st.session_state.count_photos = 0
+
 # --- Upload Excel ---
 col1, col2 = st.columns(2)
 
@@ -26,13 +34,12 @@ with col1:
         df = pd.read_excel(uploaded_excel, sheet_name="Observations")
         col_values = df["Plan"].dropna().tolist()
         nb_unique = len(set(col_values))
-        st.success(f"✅ Rapport Excel Archipad importé avec succès !")
-        #st.info(f"Nombre total de lignes non vides dans 'Plan' : {len(col_values)}")
+        st.success("✅ Rapport Excel Archipad importé avec succès !")
 
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
     if uploaded_pdf:
-        st.success(f"✅ Rapport PDF Archipad importé avec succès !")
+        st.success("✅ Rapport PDF Archipad importé avec succès !")
 
 # --- Extraction si les deux fichiers sont chargés ---
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
@@ -60,11 +67,13 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             count += 1
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
-        progress_bar.progress((page_num+1)/pages_to_extract)
+        progress_bar.progress((page_num + 1) / pages_to_extract)
 
-    st.success(f"✅ {count} photos de désordres extraites")
+    st.session_state.count_photos = count
+    st.session_state.extraction_photos_ok = True
     progress_bar.empty()
     extraction_photos_msg.empty()
+    st.success(f"✅ {st.session_state.count_photos} photos de désordres extraites")
 
     # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
@@ -75,8 +84,9 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
 
-    st.success(f"✅ {nb_unique} plans extraits")
+    st.session_state.extraction_plans_ok = True
     extraction_plans_msg.empty()
+    st.success(f"✅ {nb_unique} plans extraits")
 
     # --- Supprimer img1, img8, img15, …
     for file in os.listdir(output_folder):
@@ -103,17 +113,16 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
 
     # --- Bouton téléchargement ---
-    with open(zip_path, "rb") as f:
-        st.download_button(
-            label="⬇️ Télécharger le dossier ZIP",
-            data=f,
-            file_name="Extraction_finale.zip",
-            mime="application/zip"
-        )
+    if st.session_state.extraction_photos_ok and st.session_state.extraction_plans_ok:
+        with open(zip_path, "rb") as f:
+            st.download_button(
+                label="⬇️ Télécharger le dossier ZIP",
+                data=f,
+                file_name="Extraction_finale.zip",
+                mime="application/zip",
+                key="download_zip"
+            )
 
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
-    #st.success("🧹 Nettoyage terminé")
-
-
