@@ -27,7 +27,7 @@ with col1:
         col_values = df["Plan"].dropna().tolist()
         nb_unique = len(set(col_values))
         st.success(f"✅ Rapport Excel Archipad importé avec succès !")
-        st.info(f"Nombre total de lignes non vides dans 'Plan' : {len(col_values)}")
+        #st.info(f"Nombre total de lignes non vides dans 'Plan' : {len(col_values)}")
 
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
@@ -115,3 +115,4 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     shutil.rmtree(output_folder)
     os.remove(zip_path)
     st.success("🧹 Nettoyage terminé")
+
