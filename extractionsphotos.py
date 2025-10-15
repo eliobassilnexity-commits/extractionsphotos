@@ -57,6 +57,10 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
+        # Ignorer la première page (page de garde)
+        if page_num == 0:
+            continue
+
         page = doc[page_num]
         images = page.get_images(full=True)
 
