@@ -17,24 +17,25 @@ Cette application permet d'extraire :
 """)
 
 # --- INITIALISATION session_state ---
-if 'uploaded_excel' not in st.session_state:
-    st.session_state.uploaded_excel = None
-if 'uploaded_pdf' not in st.session_state:
-    st.session_state.uploaded_pdf = None
-if 'col_values' not in st.session_state:
-    st.session_state.col_values = None
-if 'nb_unique' not in st.session_state:
-    st.session_state.nb_unique = None
-if 'extracted' not in st.session_state:
-    st.session_state.extracted = False
-if 'zip_path' not in st.session_state:
-    st.session_state.zip_path = None
+for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path', 'reset']:
+    if key not in st.session_state:
+        st.session_state[key] = None
+
+# --- Bouton Nouvelle Extraction ---
+if st.button("🔄 Nouvelle extraction"):
+    for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
+        st.session_state[key] = None
+    st.session_state.reset = True
+
+if st.session_state.reset:
+    st.session_state.reset = False
+    st.experimental_rerun()  # Ici il est sûr de rerun après avoir remis le marqueur
 
 # --- Upload Excel ---
 col1, col2 = st.columns(2)
 
 with col1:
-    uploaded_excel = st.file_uploader("📂 Choisis ton fichier Excel Archipad (.xlsx)", type="xlsx")
+    uploaded_excel = st.file_uploader("📂 Choisis ton fichier Excel Archipad (.xlsx)", type="xlsx", key="excel_uploader")
     if uploaded_excel is not None:
         st.session_state.uploaded_excel = uploaded_excel
         df = pd.read_excel(uploaded_excel, sheet_name="Observations")
@@ -44,7 +45,7 @@ with col1:
 
 # --- Upload PDF ---
 with col2:
-    uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
+    uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf", key="pdf_uploader")
     if uploaded_pdf is not None:
         st.session_state.uploaded_pdf = uploaded_pdf
         st.success(f"✅ Rapport PDF Archipad importé avec succès !")
@@ -128,10 +129,3 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
-# --- Bouton Nouvelle Extraction ---
-if st.button("🔄 Nouvelle extraction"):
-    for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
-        if key in st.session_state:
-            del st.session_state[key]
-    st.experimental_rerun()
