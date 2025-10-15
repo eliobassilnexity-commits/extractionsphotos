@@ -76,7 +76,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
     st.success(f"✅ {nb_unique} plans extraits")
-    extraction_plans_msg.empty()
+    # extraction_plans_msg.empty()
 
     # --- Supprimer img1, img8, img15, …
     for file in os.listdir(output_folder):
@@ -114,6 +114,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
+
 
 
 
