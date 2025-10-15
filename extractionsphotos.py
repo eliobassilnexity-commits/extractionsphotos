@@ -16,6 +16,10 @@ Cette application permet d'extraire :
 - Vérification automatique de cohérence entre le nombre de désordres et le nombre de photos par désordre
 """)
 
+# --- Bouton "Nouvelle extraction" ---
+if st.button("🔄 Nouvelle extraction"):
+    st.experimental_rerun()  # relance l'app et réinitialise les fichiers uploadés
+
 # --- Upload Excel ---
 col1, col2 = st.columns(2)
 
@@ -96,12 +100,13 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     else:
         st.success("✅ Vérification OK : nombre de photos par désordre respecté")
 
-    # --- Création ZIP ---
-    zip_path = "Extraction_finale.zip"
-    shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
+    # --- Création ZIP en mémoire pour éviter relance ---
+    import tempfile
+    temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+    shutil.make_archive(temp_zip.name.replace(".zip",""), 'zip', output_folder)
 
     # --- Bouton téléchargement ---
-    with open(zip_path, "rb") as f:
+    with open(temp_zip.name, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
@@ -111,4 +116,4 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
 
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
-    os.remove(zip_path)
+    os.remove(temp_zip.name)
