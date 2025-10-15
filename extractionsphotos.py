@@ -59,7 +59,18 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     for page_num in range(pages_to_extract):
         page = doc[page_num]
         images = page.get_images(full=True)
-        for img_index, img in enumerate(images[1:], start=2):  # ignore miniature
+
+        # Vérification cohérence : chaque page doit contenir 3 ou 6 photos (hors miniature)
+        nb_images_restantes = len(images) - 1
+        if nb_images_restantes not in [3, 6]:
+            st.error(f"❌ Incohérence détectée à la page {page_num+1} : "
+                     f"{nb_images_restantes} photos trouvées (attendu 3 ou 6). "
+                     f"Vérifie le nombre de photos par désordre sur Archipad.")
+            shutil.rmtree(output_folder)
+            st.stop()
+
+        # Extraction des photos (ignorer la première miniature)
+        for img_index, img in enumerate(images[1:], start=2):
             xref = img[0]
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]
@@ -68,6 +79,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             count += 1
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
+
         progress_bar.progress((page_num+1)/pages_to_extract)
     extraction_photos_msg.empty()
     progress_bar.empty()
@@ -84,12 +96,9 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     extraction_plans_msg.empty()
     st.success(f"✅ Plans extraits")
 
-    # --- Vérification cohérence ---
+    # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
-
-    # st.info(f"📷 Nombre de photos extraites : **{nb_img_restantes}**")
-    # st.info(f"📑 Nombre de lignes non vides dans Excel : **{nb_lignes_plan}**")
 
     if nb_img_restantes == nb_lignes_plan:
         st.success("✅ Vérification OK : 1 photo par désordre")
@@ -114,4 +123,3 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
