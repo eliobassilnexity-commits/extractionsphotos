@@ -23,15 +23,15 @@ if st.button("🔄 Nouvelle extraction"):
     st.experimental_rerun()
 
 # --- Initialisation de la timeline ---
-if "timeline" not in st.session_state:
-    st.session_state.timeline = {
-        "excel_uploaded": "⏳ Excel non chargé",
-        "pdf_uploaded": "⏳ PDF non chargé",
-        "photos_extracted": "⏳ Photos de désordres non extraites",
-        "plans_extracted": "⏳ Plans non extraits",
-        "zip_ready": "⏳ ZIP non prêt",
-        "coherence_checked": "⏳ Vérification non effectuée"
-    }
+#if "timeline" not in st.session_state:
+   # st.session_state.timeline = {
+   #    "excel_uploaded": "⏳ Excel non chargé",
+   #     "pdf_uploaded": "⏳ PDF non chargé",
+   #     "photos_extracted": "⏳ Photos de désordres non extraites",
+   #     "plans_extracted": "⏳ Plans non extraits",
+   #     "zip_ready": "⏳ ZIP non prêt",
+   #      "coherence_checked": "⏳ Vérification non effectuée"
+ #   }
 
 def display_timeline():
     for val in st.session_state.timeline.values():
@@ -156,3 +156,4 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             st.session_state.pop("zip_ready")
             st.session_state.pop("output_folder")
             st.success("🧹 Nettoyage terminé après téléchargement !")
+
