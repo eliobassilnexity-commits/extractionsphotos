@@ -59,7 +59,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
         progress_bar.progress((page_num+1)/pages_to_extract)
-progress_bar.empty()
+#progress_bar.empty()
     st.success(f"✅ {count} photos de désordres extraites")
 
     st.info("⏳ Extraction des plans …")
@@ -110,6 +110,7 @@ progress_bar.empty()
     shutil.rmtree(output_folder)
     os.remove(zip_path)
     #st.success("🧹 Nettoyage terminé")
+
 
 
 
