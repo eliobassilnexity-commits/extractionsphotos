@@ -17,19 +17,9 @@ Cette application permet d'extraire :
 """)
 
 # --- INITIALISATION session_state ---
-for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path', 'reset']:
+for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
     if key not in st.session_state:
         st.session_state[key] = None
-
-# --- Bouton Nouvelle Extraction ---
-if st.button("🔄 Nouvelle extraction"):
-    for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
-        st.session_state[key] = None
-    st.session_state.reset = True
-
-if st.session_state.reset:
-    st.session_state.reset = False
-    st.experimental_rerun()  # Ici il est sûr de rerun après avoir remis le marqueur
 
 # --- Upload Excel ---
 col1, col2 = st.columns(2)
