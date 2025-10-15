@@ -26,15 +26,15 @@ with col1:
         df = pd.read_excel(uploaded_excel, sheet_name="Observations")
         col_values = df["Plan"].dropna().tolist()
         nb_unique = len(set(col_values))
-        st.success(f"✅Rapport excel Archipad importé avec succès !")
-       # st.info(f"Nombre total de lignes non vides dans 'Plan' : {len(col_values)}")
+        st.success(f"✅ Rapport Excel Archipad importé avec succès !")
+        st.info(f"Nombre total de lignes non vides dans 'Plan' : {len(col_values)}")
 
-# --- Upload PDF ---
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
     if uploaded_pdf:
         st.success(f"✅ Rapport PDF Archipad importé avec succès !")
 
+# --- Extraction si les deux fichiers sont chargés ---
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
     output_folder = "Extraction_temp"
     if os.path.exists(output_folder):
@@ -42,11 +42,11 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     os.makedirs(output_folder, exist_ok=True)
 
     doc = fitz.open(stream=uploaded_pdf.read(), filetype="pdf")
-    #st.info(f"📄 PDF chargé : {len(doc)} pages")
     count = 0
     pages_to_extract = len(doc) - nb_unique
 
-    st.info("⏳ Extraction des photos de désordres …")
+    # --- Extraction des photos de désordres ---
+    extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
         page = doc[page_num]
@@ -64,17 +64,21 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
 
     st.success(f"✅ {count} photos de désordres extraites")
     progress_bar.empty()
+    extraction_photos_msg.empty()
 
-    st.info("⏳ Extraction des plans …")
+    # --- Extraction des plans ---
+    extraction_plans_msg = st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - nb_unique, len(doc))
     for idx, page_num in enumerate(last_pages, start=1):
         page = doc[page_num]
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
-    st.success(f"✅ {nb_unique} plans extraits")
 
-    # Supprimer img1, img8, img15, …
+    st.success(f"✅ {nb_unique} plans extraits")
+    extraction_plans_msg.empty()
+
+    # --- Supprimer img1, img8, img15, …
     for file in os.listdir(output_folder):
         if file.startswith("img"):
             match = re.match(r"img(\d+)", file)
@@ -83,24 +87,22 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
                 if (num - 1) % 7 == 0:
                     os.remove(os.path.join(output_folder, file))
 
-    # Vérification cohérence
+    # --- Vérification cohérence ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(col_values)
 
-   # st.info(f"🔍 Images restantes : {nb_img_restantes}, Lignes Excel 'Plan' : {nb_lignes_plan}")
-
     if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
-        st.error("❌ Incohérence détectée: vérifie le nombre de photos par désordre sur Archipad.")
+        st.error("❌ Incohérence détectée : vérifie le nombre de photos par désordre sur Archipad.")
         shutil.rmtree(output_folder)
         st.stop()
     else:
         st.success("✅ Vérification OK : nombre de photos par désordre respecté")
 
-    # Création ZIP
+    # --- Création ZIP ---
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
 
-    # Bouton téléchargement
+    # --- Bouton téléchargement ---
     with open(zip_path, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
@@ -109,25 +111,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             mime="application/zip"
         )
 
-    # Nettoyage
+    # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
-    #st.success("🧹 Nettoyage terminé")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    st.success("🧹 Nettoyage terminé")
