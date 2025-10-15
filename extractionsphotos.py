@@ -59,7 +59,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     for page_num in range(pages_to_extract):
         page = doc[page_num]
         images = page.get_images(full=True)
-        for img_index, img in enumerate(images, start=1):
+        for img_index, img in enumerate(images, start=2):
             xref = img[0]
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]
@@ -98,3 +98,4 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
