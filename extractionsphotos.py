@@ -32,6 +32,7 @@ with col1:
 # --- Upload PDF ---
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
+    st.success(f"✅Rapport PDF Archipad importé avec succès !")
 
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
     output_folder = "Extraction_temp"
@@ -40,7 +41,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     os.makedirs(output_folder, exist_ok=True)
 
     doc = fitz.open(stream=uploaded_pdf.read(), filetype="pdf")
-    st.info(f"📄 PDF chargé : {len(doc)} pages")
+    #st.info(f"📄 PDF chargé : {len(doc)} pages")
     count = 0
     pages_to_extract = len(doc) - nb_unique
 
@@ -85,7 +86,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(col_values)
 
-    st.info(f"🔍 Images restantes : {nb_img_restantes}, Lignes Excel 'Plan' : {nb_lignes_plan}")
+   # st.info(f"🔍 Images restantes : {nb_img_restantes}, Lignes Excel 'Plan' : {nb_lignes_plan}")
 
     if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
         st.error("❌ Incohérence détectée: vérifie le nombre de photos par désordre sur Archipad.")
@@ -111,6 +112,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     shutil.rmtree(output_folder)
     os.remove(zip_path)
     #st.success("🧹 Nettoyage terminé")
+
 
 
 
