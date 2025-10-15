@@ -59,7 +59,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     for page_num in range(pages_to_extract):
         page = doc[page_num]
         images = page.get_images(full=True)
-        for img_index, img in enumerate(images[1:], start=2):
+        for img_index, img in enumerate(images[1:], start=2):  # ignore miniature
             xref = img[0]
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]
@@ -71,7 +71,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         progress_bar.progress((page_num+1)/pages_to_extract)
     extraction_photos_msg.empty()
     progress_bar.empty()
-    st.success(f"✅ Photos de désordres extraites")
+    st.success(f"✅ {count} photos de désordres extraites")
 
     # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
@@ -82,23 +82,24 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
     extraction_plans_msg.empty()
-    st.success(f"✅ Plans extraits")
+    st.success(f"✅ {st.session_state.nb_unique} plans extraits")
 
-
- # --- Vérification cohérence ---
+    # --- Vérification cohérence ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
 
-    if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
-        st.error("❌ Incohérence détectée : vérifie le nombre de photos par désordre sur Archipad.")
+    st.info(f"📷 Nombre de photos extraites : **{nb_img_restantes}**")
+    st.info(f"📑 Nombre de lignes non vides dans Excel : **{nb_lignes_plan}**")
+
+    if nb_img_restantes == nb_lignes_plan:
+        st.success("✅ Vérification OK : 1 photo par désordre")
+    elif nb_img_restantes == nb_lignes_plan * 2:
+        st.success("✅ Vérification OK : 2 photos par désordre")
+    else:
+        st.error("❌ Incohérence détectée : le nombre de photos ne correspond pas au nombre de désordres.")
         shutil.rmtree(output_folder)
         st.stop()
-    else:
-        st.success("✅ Vérification OK : nombre de photos par désordre respecté")
 
-
-
-            
     # --- Création ZIP ---
     st.session_state.zip_path = "Extraction_finale.zip"
     shutil.make_archive(st.session_state.zip_path.replace(".zip", ""), 'zip', output_folder)
@@ -113,6 +114,3 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
-
-
