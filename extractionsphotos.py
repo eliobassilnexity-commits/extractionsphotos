@@ -62,7 +62,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             image.save(os.path.join(output_folder, image_filename))
         progress_bar.progress((page_num + 1) / pages_to_extract)
 
-    st.success(f"✅ {count} photos de désordres extraites")
+    st.success(f"✅ Photos de désordres extraites")
     progress_bar.empty()
     extraction_photos_msg.empty()
 
@@ -75,7 +75,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
 
-    st.success(f"✅ {nb_unique} plans extraits")
+    st.success(f"✅ Plans extraits")
     extraction_plans_msg.empty()
 
     # --- Supprimer img1, img8, img15, …
@@ -109,3 +109,4 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
