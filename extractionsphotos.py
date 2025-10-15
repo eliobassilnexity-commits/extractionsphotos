@@ -84,6 +84,21 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     extraction_plans_msg.empty()
     st.success(f"✅ Plans extraits")
 
+
+ # --- Vérification cohérence ---
+    nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
+    nb_lignes_plan = len(st.session_state.col_values)
+
+    if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
+        st.error("❌ Incohérence détectée : vérifie le nombre de photos par désordre sur Archipad.")
+        shutil.rmtree(output_folder)
+        st.stop()
+    else:
+        st.success("✅ Vérification OK : nombre de photos par désordre respecté")
+
+
+
+            
     # --- Création ZIP ---
     st.session_state.zip_path = "Extraction_finale.zip"
     shutil.make_archive(st.session_state.zip_path.replace(".zip", ""), 'zip', output_folder)
@@ -98,5 +113,6 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
