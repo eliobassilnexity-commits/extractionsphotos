@@ -16,36 +16,54 @@ Cette application permet d'extraire :
 - Vérification automatique de cohérence entre le nombre de désordres et le nombre de photos par désordre
 """)
 
-# --- Upload Excel et PDF ---
+# --- INITIALISATION session_state ---
+if 'uploaded_excel' not in st.session_state:
+    st.session_state.uploaded_excel = None
+if 'uploaded_pdf' not in st.session_state:
+    st.session_state.uploaded_pdf = None
+if 'col_values' not in st.session_state:
+    st.session_state.col_values = None
+if 'nb_unique' not in st.session_state:
+    st.session_state.nb_unique = None
+if 'extracted' not in st.session_state:
+    st.session_state.extracted = False
+if 'zip_path' not in st.session_state:
+    st.session_state.zip_path = None
+
+# --- Upload Excel ---
 col1, col2 = st.columns(2)
 
 with col1:
     uploaded_excel = st.file_uploader("📂 Choisis ton fichier Excel Archipad (.xlsx)", type="xlsx")
-    nb_unique = None
-    if uploaded_excel:
+    if uploaded_excel is not None:
+        st.session_state.uploaded_excel = uploaded_excel
         df = pd.read_excel(uploaded_excel, sheet_name="Observations")
-        col_values = df["Plan"].dropna().tolist()
-        nb_unique = len(set(col_values))
-        st.success("✅ Rapport Excel Archipad importé avec succès !")
+        st.session_state.col_values = df["Plan"].dropna().tolist()
+        st.session_state.nb_unique = len(set(st.session_state.col_values))
+        st.success(f"✅ Rapport Excel Archipad importé avec succès !")
 
+# --- Upload PDF ---
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
-    if uploaded_pdf:
-        st.success("✅ Rapport PDF Archipad importé avec succès !")
+    if uploaded_pdf is not None:
+        st.session_state.uploaded_pdf = uploaded_pdf
+        st.success(f"✅ Rapport PDF Archipad importé avec succès !")
 
-# --- Extraction si les deux fichiers sont chargés ---
-if uploaded_excel and uploaded_pdf and nb_unique is not None:
+# --- Extraction si fichiers chargés et non déjà extraits ---
+if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf 
+        and st.session_state.nb_unique is not None 
+        and not st.session_state.extracted):
 
     output_folder = "Extraction_temp"
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
     os.makedirs(output_folder, exist_ok=True)
 
-    doc = fitz.open(stream=uploaded_pdf.read(), filetype="pdf")
+    doc = fitz.open(stream=st.session_state.uploaded_pdf.read(), filetype="pdf")
     count = 0
-    pages_to_extract = len(doc) - nb_unique
+    pages_to_extract = len(doc) - st.session_state.nb_unique
 
-    # --- Photos de désordres ---
+    # --- Extraction photos de désordres ---
     extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
@@ -60,23 +78,21 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             count += 1
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
-        progress_bar.progress((page_num + 1) / pages_to_extract)
-
-    st.success(f"✅ Photos de désordres extraites")
-    progress_bar.empty()
+        progress_bar.progress((page_num+1)/pages_to_extract)
     extraction_photos_msg.empty()
+    progress_bar.empty()
+    st.success(f"✅ {count} photos de désordres extraites")
 
-    # --- Plans ---
+    # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
-    last_pages = range(len(doc) - nb_unique, len(doc))
+    last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
     for idx, page_num in enumerate(last_pages, start=1):
         page = doc[page_num]
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
-
-    st.success(f"✅ Plans extraits")
     extraction_plans_msg.empty()
+    st.success(f"✅ {st.session_state.nb_unique} plans extraits")
 
     # --- Supprimer img1, img8, img15, …
     for file in os.listdir(output_folder):
@@ -89,7 +105,8 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
 
     # --- Vérification cohérence ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
-    nb_lignes_plan = len(col_values)
+    nb_lignes_plan = len(st.session_state.col_values)
+
     if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
         st.error("❌ Incohérence détectée : vérifie le nombre de photos par désordre sur Archipad.")
         shutil.rmtree(output_folder)
@@ -98,11 +115,13 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         st.success("✅ Vérification OK : nombre de photos par désordre respecté")
 
     # --- Création ZIP ---
-    zip_path = "Extraction_finale.zip"
-    shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
+    st.session_state.zip_path = "Extraction_finale.zip"
+    shutil.make_archive(st.session_state.zip_path.replace(".zip", ""), 'zip', output_folder)
+    st.session_state.extracted = True
 
-    # --- Bouton téléchargement ---
-    with open(zip_path, "rb") as f:
+# --- Bouton téléchargement ---
+if st.session_state.extracted and st.session_state.zip_path is not None:
+    with open(st.session_state.zip_path, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
@@ -110,3 +129,9 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             mime="application/zip"
         )
 
+# --- Bouton Nouvelle Extraction ---
+if st.button("🔄 Nouvelle extraction"):
+    for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
+        if key in st.session_state:
+            del st.session_state[key]
+    st.experimental_rerun()
