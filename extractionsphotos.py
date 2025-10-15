@@ -17,7 +17,7 @@ Cette application permet d'extraire :
 """)
 
 # --- INITIALISATION session_state ---
-for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
+for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path', 'downloaded']:
     if key not in st.session_state:
         st.session_state[key] = None
 
@@ -109,13 +109,22 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     st.session_state.zip_path = "Extraction_finale.zip"
     shutil.make_archive(st.session_state.zip_path.replace(".zip", ""), 'zip', output_folder)
     st.session_state.extracted = True
+    st.session_state.downloaded = False  # Flag pour déclencher rafraîchissement après téléchargement
 
 # --- Bouton téléchargement ---
 if st.session_state.extracted and st.session_state.zip_path is not None:
     with open(st.session_state.zip_path, "rb") as f:
-        st.download_button(
+        if st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
             file_name="Extraction_finale.zip",
             mime="application/zip"
-        )
+        ):
+            st.session_state.downloaded = True
+
+# --- Rafraîchissement automatique après téléchargement ---
+if st.session_state.downloaded:
+    # Nettoyage session_state pour refaire une nouvelle extraction
+    for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path', 'downloaded']:
+        st.session_state[key] = None
+    st.experimental_rerun()
