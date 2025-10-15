@@ -33,7 +33,7 @@ with col1:
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
     if uploaded_pdf:
-    st.success(f"✅Rapport PDF Archipad importé avec succès !")
+    st.success(f"✅ Rapport PDF Archipad importé avec succès !")
 
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
     output_folder = "Extraction_temp"
@@ -113,6 +113,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     shutil.rmtree(output_folder)
     os.remove(zip_path)
     #st.success("🧹 Nettoyage terminé")
+
 
 
 
