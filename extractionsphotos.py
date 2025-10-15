@@ -110,8 +110,6 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             mime="application/zip"
         )
 
-    # --- Bouton Nouvelle extraction ---
-    if st.button("🔄 Nouvelle extraction"):
-        shutil.rmtree(output_folder)
-        os.remove(zip_path)
-        st.experimental_rerun()
+# --- Bouton Nouvelle extraction (rafraîchit la page) ---
+if st.button("🔄 Nouvelle extraction"):
+    st.experimental_rerun()
