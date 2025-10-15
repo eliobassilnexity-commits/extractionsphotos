@@ -13,7 +13,7 @@ st.title("📄 Extraction Photos PDF depuis Archipad")
 st.markdown("""
 Cette application permet d'extraire :
 - Les photos des désordres et les plans depuis Archipad
-- Vérification automatique de cohérence
+- Vérification automatique de cohérence entre le nombre de désordres et le nombre de photos par désordre
 """)
 
 # --- Upload Excel ---
@@ -59,8 +59,9 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             image_filename = f"img{count}.{image_ext}"
             image.save(os.path.join(output_folder, image_filename))
         progress_bar.progress((page_num+1)/pages_to_extract)
-#progress_bar.empty()
+
     st.success(f"✅ {count} photos de désordres extraites")
+    progress_bar.empty()
 
     st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - nb_unique, len(doc))
@@ -110,6 +111,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     shutil.rmtree(output_folder)
     os.remove(zip_path)
     #st.success("🧹 Nettoyage terminé")
+
 
 
 
