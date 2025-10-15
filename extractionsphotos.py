@@ -114,5 +114,6 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
-    st.success("🧹 Nettoyage terminé")
+    #st.success("🧹 Nettoyage terminé")
+
 
