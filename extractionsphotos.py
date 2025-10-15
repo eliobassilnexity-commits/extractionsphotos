@@ -16,12 +16,6 @@ Cette application permet d'extraire :
 - Vérification automatique de cohérence entre le nombre de désordres et le nombre de photos par désordre
 """)
 
-# --- Bouton Nouvelle extraction ---
-if st.button("🔄 Nouvelle extraction"):
-    for key in st.session_state.keys():
-        del st.session_state[key]
-    st.experimental_rerun()
-
 # --- Upload Excel et PDF ---
 col1, col2 = st.columns(2)
 
@@ -32,16 +26,16 @@ with col1:
         df = pd.read_excel(uploaded_excel, sheet_name="Observations")
         col_values = df["Plan"].dropna().tolist()
         nb_unique = len(set(col_values))
-        st.session_state.col_values = col_values
-        st.success(f"✅ Rapport Excel Archipad importé avec succès !")
+        st.success("✅ Rapport Excel Archipad importé avec succès !")
 
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf")
     if uploaded_pdf:
-        st.success(f"✅ Rapport PDF Archipad importé avec succès !")
+        st.success("✅ Rapport PDF Archipad importé avec succès !")
 
 # --- Extraction si les deux fichiers sont chargés ---
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
+
     output_folder = "Extraction_temp"
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
@@ -51,7 +45,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     count = 0
     pages_to_extract = len(doc) - nb_unique
 
-    # --- Extraction des photos de désordres ---
+    # --- Photos de désordres ---
     extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
@@ -68,12 +62,11 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
             image.save(os.path.join(output_folder, image_filename))
         progress_bar.progress((page_num + 1) / pages_to_extract)
 
-    st.session_state.photos_extracted = count
     st.success(f"✅ {count} photos de désordres extraites")
     progress_bar.empty()
     extraction_photos_msg.empty()
 
-    # --- Extraction des plans ---
+    # --- Plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - nb_unique, len(doc))
     for idx, page_num in enumerate(last_pages, start=1):
@@ -81,7 +74,6 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
-
     st.success(f"✅ {nb_unique} plans extraits")
     extraction_plans_msg.empty()
 
@@ -95,11 +87,11 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
                     os.remove(os.path.join(output_folder, file))
 
     # --- Vérification cohérence ---
-    nb_img_restantes = st.session_state.photos_extracted
-    nb_lignes_plan = len(st.session_state.col_values)
-
+    nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
+    nb_lignes_plan = len(col_values)
     if not (nb_img_restantes == nb_lignes_plan or nb_img_restantes // 2 == nb_lignes_plan):
         st.error("❌ Incohérence détectée : vérifie le nombre de photos par désordre sur Archipad.")
+        shutil.rmtree(output_folder)
         st.stop()
     else:
         st.success("✅ Vérification OK : nombre de photos par désordre respecté")
@@ -108,15 +100,15 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
 
-    # --- Bouton téléchargement ---
+    # --- Bouton téléchargement + réinitialisation ---
     with open(zip_path, "rb") as f:
-        st.download_button(
+        if st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
             file_name="Extraction_finale.zip",
             mime="application/zip"
-        )
-
-    # --- Nettoyage ---
-    shutil.rmtree(output_folder)
-    os.remove(zip_path)
+        ):
+            # Nettoyage et réinitialisation
+            shutil.rmtree(output_folder)
+            os.remove(zip_path)
+            st.experimental_rerun()
