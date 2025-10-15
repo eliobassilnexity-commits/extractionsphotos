@@ -34,6 +34,7 @@ with col2:
         st.success(f"✅ Rapport PDF Archipad importé avec succès !")
 
 # --- Extraction si les deux fichiers sont chargés ---
+st.success(f"Extraction en cours ...")
 if uploaded_excel and uploaded_pdf and nb_unique is not None:
     output_folder = "Extraction_temp"
     if os.path.exists(output_folder):
@@ -66,7 +67,7 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # extraction_photos_msg.empty()
 
     # --- Extraction des plans ---
-    extraction_plans_msg = st.info("⏳ Extraction des plans …")
+    # extraction_plans_msg = st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - nb_unique, len(doc))
     for idx, page_num in enumerate(last_pages, start=1):
         page = doc[page_num]
@@ -112,5 +113,6 @@ if uploaded_excel and uploaded_pdf and nb_unique is not None:
     # --- Nettoyage ---
     shutil.rmtree(output_folder)
     os.remove(zip_path)
+
 
 
