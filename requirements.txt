@@ -3,3 +3,5 @@ Pillow
 pandas
 openpyxl
 streamlit
+streamlit>=1.39.0
+
