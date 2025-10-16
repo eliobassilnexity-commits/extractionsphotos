@@ -58,23 +58,19 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
-        # Ignorer la première page (page de garde)
-        if page_num == 0:
+        if page_num == 0:  # Ignorer la page de garde
             continue
 
         page = doc[page_num]
         images = page.get_images(full=True)
 
-        # Vérification cohérence : chaque page doit contenir 3 ou 6 photos (hors miniature)
         nb_images_restantes = len(images) - 1
         if nb_images_restantes not in [3, 6]:
             st.error(f"❌ Incohérence détectée à la page {page_num+1} : "
-                     f"{nb_images_restantes} photos trouvées (attendu 3 ou 6). "
-                     f"Vérifie le nombre de photos par désordre sur Archipad.")
+                     f"{nb_images_restantes} photos trouvées (attendu 3 ou 6).")
             shutil.rmtree(output_folder)
             st.stop()
 
-        # Extraction des photos (ignorer la première miniature)
         for img_index, img in enumerate(images[1:], start=2):
             xref = img[0]
             base_image = doc.extract_image(xref)
@@ -93,22 +89,16 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
-
-    # On stockera les tailles ici
     tailles_pages = []
 
     for idx, page_num in enumerate(last_pages, start=1):
         page = doc[page_num]
-
-        # Sauvegarde des dimensions en points
         rect = page.rect
         tailles_pages.append({
             "Plan": f"P{idx}",
             "Largeur (pt)": rect.width,
             "Hauteur (pt)": rect.height
         })
-
-        # Sauvegarde de l'image du plan
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
@@ -116,11 +106,11 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     extraction_plans_msg.empty()
     st.success(f"✅ Plans extraits")
 
-    # --- Création Excel repère avec les dimensions ---
+    # --- Création Excel repère ---
     df_tailles = pd.DataFrame(tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
-    st.success("📊 Fichier 'excel_repère.xlsx' généré avec les dimensions des plans")
+    st.success("📊 Fichier 'excel_repère.xlsx' généré")
 
     # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -131,23 +121,26 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     elif nb_img_restantes == nb_lignes_plan * 2:
         st.success("✅ Vérification OK : 2 photos par désordre")
     else:
-        st.error("❌ Incohérence détectée : vérifie le nombre de photos par désordre sur Archipad.")
+        st.error("❌ Incohérence détectée.")
         shutil.rmtree(output_folder)
         st.stop()
 
     # --- Création ZIP ---
-    st.session_state.zip_path = "Extraction_finale.zip"
-    shutil.make_archive(st.session_state.zip_path.replace(".zip", ""), 'zip', output_folder)
+    zip_path = "Extraction_finale.zip"
+    shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
     st.session_state.extracted = True
 
-# --- Bouton téléchargement ---
-if st.session_state.extracted and st.session_state.zip_path is not None:
-    with open(st.session_state.zip_path, "rb") as f:
+# --- Bouton téléchargement avec suppression automatique ---
+if st.session_state.extracted and st.session_state.zip_path is None:
+    with open(zip_path, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
-
+    # --- Nettoyage automatique après téléchargement ---
+    shutil.rmtree("Extraction_temp")
+    if os.path.exists(zip_path):
+        os.remove(zip_path)
+    st.session_state.extracted = False
