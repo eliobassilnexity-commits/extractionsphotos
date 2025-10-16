@@ -13,6 +13,7 @@ st.markdown("""
 Cette application permet d'extraire depuis les rapports d'Archipad :
 - Les photos des désordres
 - Les plans
+- Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
 """)
 
 # --- INITIALISATION session_state ---
@@ -92,13 +93,34 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     # --- Extraction des plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
+
+    # On stockera les tailles ici
+    tailles_pages = []
+
     for idx, page_num in enumerate(last_pages, start=1):
         page = doc[page_num]
+
+        # Sauvegarde des dimensions en points
+        rect = page.rect
+        tailles_pages.append({
+            "Plan": f"P{idx}",
+            "Largeur (pt)": rect.width,
+            "Hauteur (pt)": rect.height
+        })
+
+        # Sauvegarde de l'image du plan
         pix = page.get_pixmap(dpi=200)
         page_filename = f"P{idx}.png"
         pix.save(os.path.join(output_folder, page_filename))
+
     extraction_plans_msg.empty()
     st.success(f"✅ Plans extraits")
+
+    # --- Création Excel repère avec les dimensions ---
+    df_tailles = pd.DataFrame(tailles_pages)
+    excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
+    df_tailles.to_excel(excel_repere_path, index=False)
+    st.success("📊 Fichier 'excel_repère.xlsx' généré avec les dimensions des plans")
 
     # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -127,4 +149,3 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
