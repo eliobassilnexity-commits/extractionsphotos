@@ -17,7 +17,7 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 """)
 
 # --- INITIALISATION session_state ---
-for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
+for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path', 'temp_excel_path']:
     if key not in st.session_state:
         st.session_state[key] = None
 
@@ -50,27 +50,30 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         shutil.rmtree(output_folder)
     os.makedirs(output_folder, exist_ok=True)
 
+    # Sauvegarder temporairement l'Excel original pour copier
+    temp_excel_path = "temp_uploaded_excel.xlsx"
+    with open(temp_excel_path, "wb") as f:
+        f.write(st.session_state.uploaded_excel.getbuffer())
+    st.session_state.temp_excel_path = temp_excel_path
+
     doc = fitz.open(stream=st.session_state.uploaded_pdf.read(), filetype="pdf")
     count = 0
     pages_to_extract = len(doc) - st.session_state.nb_unique
 
-    # --- Extraction photos de désordres ---
+    # --- Extraction photos ---
     extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
     for page_num in range(pages_to_extract):
         if page_num == 0:  # Ignorer la page de garde
             continue
-
         page = doc[page_num]
         images = page.get_images(full=True)
-
         nb_images_restantes = len(images) - 1
         if nb_images_restantes not in [3, 6]:
             st.error(f"❌ Incohérence détectée à la page {page_num+1} : "
                      f"{nb_images_restantes} photos trouvées (attendu 3 ou 6).")
             shutil.rmtree(output_folder)
             st.stop()
-
         for img_index, img in enumerate(images[1:], start=2):
             xref = img[0]
             base_image = doc.extract_image(xref)
@@ -78,15 +81,13 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             image_ext = base_image["ext"]
             image = Image.open(io.BytesIO(image_bytes))
             count += 1
-            image_filename = f"img{count}.{image_ext}"
-            image.save(os.path.join(output_folder, image_filename))
-
+            image.save(os.path.join(output_folder, f"img{count}.{image_ext}"))
         progress_bar.progress((page_num+1)/pages_to_extract)
     extraction_photos_msg.empty()
     progress_bar.empty()
-    st.success(f"✅ Photos de désordres extraites")
+    st.success("✅ Photos extraites")
 
-    # --- Extraction des plans ---
+    # --- Extraction plans ---
     extraction_plans_msg = st.info("⏳ Extraction des plans …")
     last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
     tailles_pages = []
@@ -100,17 +101,19 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             "Hauteur (pt)": rect.height
         })
         pix = page.get_pixmap(dpi=200)
-        page_filename = f"P{idx}.png"
-        pix.save(os.path.join(output_folder, page_filename))
+        pix.save(os.path.join(output_folder, f"P{idx}.png"))
 
     extraction_plans_msg.empty()
-    st.success(f"✅ Plans extraits")
+    st.success("✅ Plans extraits")
 
     # --- Création Excel repère ---
     df_tailles = pd.DataFrame(tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
     st.success("📊 Fichier 'excel_repère.xlsx' généré")
+
+    # --- Copie Excel Archipad original ---
+    shutil.copy(temp_excel_path, os.path.join(output_folder, "excelarchipad.xlsx"))
 
     # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -129,19 +132,28 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
     st.session_state.extracted = True
+    st.session_state.zip_path = zip_path
+    st.success("📦 Extraction terminée, prêt à télécharger !")
 
-# --- Bouton téléchargement avec suppression automatique ---
-if st.session_state.extracted and st.session_state.zip_path is None:
-    with open(zip_path, "rb") as f:
+# --- Bouton téléchargement ---
+if st.session_state.extracted and st.session_state.zip_path:
+    with open(st.session_state.zip_path, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
             file_name="Extraction_finale.zip",
-            mime="application/zip"
+            mime="application/zip",
+            key="download_zip"
         )
-    # --- Nettoyage automatique après téléchargement ---
-    shutil.rmtree("Extraction_temp")
-    if os.path.exists(zip_path):
-        os.remove(zip_path)
-    st.session_state.extracted = False
 
+    # --- Nettoyage automatique après téléchargement ---
+    if os.path.exists(output_folder):
+        shutil.rmtree(output_folder)
+    if os.path.exists(st.session_state.zip_path):
+        os.remove(st.session_state.zip_path)
+    if os.path.exists(st.session_state.temp_excel_path):
+        os.remove(st.session_state.temp_excel_path)
+
+    st.session_state.extracted = False
+    st.session_state.zip_path = None
+    st.session_state.temp_excel_path = None
