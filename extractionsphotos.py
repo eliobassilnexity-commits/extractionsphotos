@@ -14,6 +14,7 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 - Les photos des désordres
 - Les plans
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
+- Une copie du fichier Excel Archipad original
 """)
 
 # --- INITIALISATION session_state ---
@@ -112,6 +113,12 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles.to_excel(excel_repere_path, index=False)
     st.success("📊 Fichier 'excel_repère.xlsx' généré")
 
+    # --- Copier le fichier Excel original ---
+    excel_archipad_path = os.path.join(output_folder, "excelarchipad.xlsx")
+    with open(excel_archipad_path, "wb") as f:
+        f.write(st.session_state.uploaded_excel.getbuffer())
+    st.success("📊 Fichier 'excelarchipad.xlsx' ajouté")
+
     # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
@@ -129,10 +136,11 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
     st.session_state.extracted = True
+    st.session_state.zip_path = zip_path  # 🔹 ajout pour suivi
 
 # --- Bouton téléchargement avec suppression automatique ---
-if st.session_state.extracted and st.session_state.zip_path is None:
-    with open(zip_path, "rb") as f:
+if st.session_state.extracted and st.session_state.zip_path is not None:
+    with open(st.session_state.zip_path, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
@@ -141,6 +149,7 @@ if st.session_state.extracted and st.session_state.zip_path is None:
         )
     # --- Nettoyage automatique après téléchargement ---
     shutil.rmtree("Extraction_temp")
-    if os.path.exists(zip_path):
-        os.remove(zip_path)
+    if os.path.exists(st.session_state.zip_path):
+        os.remove(st.session_state.zip_path)
     st.session_state.extracted = False
+    st.session_state.zip_path = None
