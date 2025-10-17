@@ -113,12 +113,6 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles.to_excel(excel_repere_path, index=False)
     st.success("📊 Fichier 'excel_repère.xlsx' généré")
 
-    # --- Copie du fichier Excel Archipad d'origine ---
-    excelarchipad_path = os.path.join(output_folder, "excelarchipad.xlsx")
-    with open(excelarchipad_path, "wb") as f_out:
-    f_out.write(st.session_state.uploaded_excel.getbuffer())
-    # st.success("📊 Fichier 'excelarchipad.xlsx' copié")
-
     # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
@@ -151,6 +145,7 @@ if st.session_state.extracted and st.session_state.zip_path is None:
     if os.path.exists(zip_path):
         os.remove(zip_path)
     st.session_state.extracted = False
+
 
 
 
