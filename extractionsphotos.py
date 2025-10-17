@@ -1,5 +1,5 @@
 import streamlit as st
-import fitz  # PyMuPDF
+import fitz
 from PIL import Image
 import io
 import pandas as pd
@@ -18,9 +18,9 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 
 # --- INITIALISATION session_state ---
 for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 
-            'extracted', 'zip_path', 'progress_photos', 'progress_plans']:
+            'extracted', 'zip_path', 'progress_photos', 'progress_plans', 'tailles_pages']:
     if key not in st.session_state:
-        st.session_state[key] = None if 'uploaded' not in key else 0
+        st.session_state[key] = None
 
 # --- Upload Excel ---
 col1, col2 = st.columns(2)
@@ -40,7 +40,7 @@ with col2:
         st.session_state.uploaded_pdf = uploaded_pdf
         st.success("✅ Rapport PDF Archipad importé avec succès !")
 
-# --- Extraction si fichiers chargés et non déjà extraits ---
+# --- Extraction ---
 if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf 
         and st.session_state.nb_unique is not None 
         and not st.session_state.extracted):
@@ -54,24 +54,22 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     count = 0
     pages_to_extract = len(doc) - st.session_state.nb_unique
 
-    # --- Extraction photos de désordres ---
+    # --- Photos ---
+    if st.session_state.progress_photos is None:
+        st.session_state.progress_photos = 0
     if st.session_state.progress_photos == 0:
         extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
         progress_bar_photos = st.progress(0)
         for page_num in range(pages_to_extract):
-            if page_num == 0:  # Ignorer la page de garde
+            if page_num == 0:
                 continue
-
             page = doc[page_num]
             images = page.get_images(full=True)
-
             nb_images_restantes = len(images) - 1
             if nb_images_restantes not in [3, 6]:
-                st.error(f"❌ Incohérence détectée à la page {page_num+1} : "
-                         f"{nb_images_restantes} photos trouvées (attendu 3 ou 6).")
+                st.error(f"❌ Incohérence à la page {page_num+1} : {nb_images_restantes} photos")
                 shutil.rmtree(output_folder)
                 st.stop()
-
             for img_index, img in enumerate(images[1:], start=2):
                 xref = img[0]
                 base_image = doc.extract_image(xref)
@@ -81,25 +79,25 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
                 count += 1
                 image_filename = f"img{count}.{image_ext}"
                 image.save(os.path.join(output_folder, image_filename))
-
             progress_bar_photos.progress((page_num+1)/pages_to_extract)
         extraction_photos_msg.empty()
         progress_bar_photos.empty()
-        st.success("✅ Photos de désordres extraites")
+        st.success("✅ Photos extraites")
         st.session_state.progress_photos = 1
     else:
         st.success("✅ Photos déjà extraites")
 
-    # --- Extraction des plans ---
+    # --- Plans ---
+    if st.session_state.progress_plans is None:
+        st.session_state.progress_plans = 0
     if st.session_state.progress_plans == 0:
         extraction_plans_msg = st.info("⏳ Extraction des plans …")
         last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
-        tailles_pages = []
-
+        st.session_state.tailles_pages = []
         for idx, page_num in enumerate(last_pages, start=1):
             page = doc[page_num]
             rect = page.rect
-            tailles_pages.append({
+            st.session_state.tailles_pages.append({
                 "Plan": f"P{idx}",
                 "Largeur (pt)": rect.width,
                 "Hauteur (pt)": rect.height
@@ -107,36 +105,33 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             pix = page.get_pixmap(dpi=200)
             page_filename = f"P{idx}.png"
             pix.save(os.path.join(output_folder, page_filename))
-
         extraction_plans_msg.empty()
         st.success("✅ Plans extraits")
         st.session_state.progress_plans = 1
     else:
         st.success("✅ Plans déjà extraits")
 
-    # --- Création Excel repère ---
-    df_tailles = pd.DataFrame(tailles_pages)
+    # --- Excel repère ---
+    df_tailles = pd.DataFrame(st.session_state.tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
     st.success("📊 Fichier 'excel_repere.xlsx' généré")
 
-    # --- Copier l'Excel original ---
+    # --- Copier Excel original ---
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
-    with open(st.session_state.uploaded_excel.name, "wb") as f:
+    with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-    shutil.copy(st.session_state.uploaded_excel.name, excel_orig_copy_path)
-    st.success("📊 Copie de l'Excel original 'excelarchipad.xlsx' ajoutée au dossier")
+    st.success("📊 Copie de l'Excel original ajoutée")
 
-    # --- Vérification cohérence globale ---
+    # --- Vérification photos ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
-
     if nb_img_restantes == nb_lignes_plan:
         st.success("✅ Vérification OK : 1 photo par désordre")
     elif nb_img_restantes == nb_lignes_plan * 2:
         st.success("✅ Vérification OK : 2 photos par désordre")
     else:
-        st.error("❌ Incohérence détectée.")
+        st.error("❌ Incohérence détectée")
         shutil.rmtree(output_folder)
         st.stop()
 
