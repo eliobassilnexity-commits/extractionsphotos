@@ -14,11 +14,10 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 - Les photos des désordres
 - Les plans
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
-- Une copie de l'Excel Archipad original
 """)
 
 # --- INITIALISATION session_state ---
-for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path', 'temp_excel_path']:
+for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 'extracted', 'zip_path']:
     if key not in st.session_state:
         st.session_state[key] = None
 
@@ -29,14 +28,7 @@ with col1:
     uploaded_excel = st.file_uploader("📂 Choisis ton fichier Excel Archipad (.xlsx)", type="xlsx", key="excel_uploader")
     if uploaded_excel is not None:
         st.session_state.uploaded_excel = uploaded_excel
-
-        # Sauvegarde du fichier Excel importé en local temporairement
-        temp_excel_path = "excelarchipad_temp.xlsx"
-        with open(temp_excel_path, "wb") as f_out:
-            f_out.write(uploaded_excel.getbuffer())
-        st.session_state.temp_excel_path = temp_excel_path
-
-        df = pd.read_excel(temp_excel_path, sheet_name="Observations")
+        df = pd.read_excel(uploaded_excel, sheet_name="Observations")
         st.session_state.col_values = df["Plan"].dropna().tolist()
         st.session_state.nb_unique = len(set(st.session_state.col_values))
         st.success(f"✅ Rapport Excel Archipad importé avec succès !")
@@ -120,12 +112,6 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles.to_excel(excel_repere_path, index=False)
     st.success("📊 Fichier 'excel_repère.xlsx' généré")
 
-    # --- Copie Excel Archipad original ---
-    if st.session_state.temp_excel_path:
-        excelarchipad_path = os.path.join(output_folder, "excelarchipad.xlsx")
-        shutil.copy(st.session_state.temp_excel_path, excelarchipad_path)
-        st.success("📊 Fichier 'excelarchipad.xlsx' copié")
-
     # --- Vérification cohérence globale ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
@@ -143,11 +129,10 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
     st.session_state.extracted = True
-    st.session_state.zip_path = zip_path
 
 # --- Bouton téléchargement avec suppression automatique ---
-if st.session_state.extracted and st.session_state.zip_path:
-    with open(st.session_state.zip_path, "rb") as f:
+if st.session_state.extracted and st.session_state.zip_path is None:
+    with open(zip_path, "rb") as f:
         st.download_button(
             label="⬇️ Télécharger le dossier ZIP",
             data=f,
@@ -156,7 +141,7 @@ if st.session_state.extracted and st.session_state.zip_path:
         )
     # --- Nettoyage automatique après téléchargement ---
     shutil.rmtree("Extraction_temp")
-    if os.path.exists(st.session_state.zip_path):
-        os.remove(st.session_state.zip_path)
+    if os.path.exists(zip_path):
+        os.remove(zip_path)
     st.session_state.extracted = False
-    st.session_state.zip_path = None
+
