@@ -40,6 +40,13 @@ with col2:
         st.session_state.uploaded_pdf = uploaded_pdf
         st.success(f"✅ Rapport PDF Archipad importé avec succès !")
 
+# --- Copie du fichier Excel Archipad d'origine ---
+excelarchipad_path = os.path.join(output_folder, "excelarchipad.xlsx")
+with open(excelarchipad_path, "wb") as f_out:
+    f_out.write(st.session_state.uploaded_excel.getbuffer())
+# st.success("📊 Fichier 'excelarchipad.xlsx' copié") 
+
+
 # --- Extraction si fichiers chargés et non déjà extraits ---
 if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf 
         and st.session_state.nb_unique is not None 
@@ -54,6 +61,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     count = 0
     pages_to_extract = len(doc) - st.session_state.nb_unique
 
+            
     # --- Extraction photos de désordres ---
     extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
     progress_bar = st.progress(0)
@@ -144,4 +152,5 @@ if st.session_state.extracted and st.session_state.zip_path is None:
     if os.path.exists(zip_path):
         os.remove(zip_path)
     st.session_state.extracted = False
+
 
