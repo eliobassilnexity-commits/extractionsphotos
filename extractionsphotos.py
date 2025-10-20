@@ -127,16 +127,16 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     # st.success("📊 Copie de l'Excel original ajoutée")
 
     # --- Vérification photos ---
-    # nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
-    # nb_lignes_plan = len(st.session_state.col_values)
-    # if nb_img_restantes == nb_lignes_plan:
-    #    st.success("✅ Vérification OK : 1 photo par désordre")
-    # elif nb_img_restantes == nb_lignes_plan * 2:
-    #    st.success("✅ Vérification OK : 2 photos par désordre")
-    # else:
-    #   st.error("❌ Incohérence détectée")
-    # shutil.rmtree(output_folder)
-    # st.stop()
+    nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
+    nb_lignes_plan = len(st.session_state.col_values)
+    if nb_img_restantes == nb_lignes_plan:
+        st.success("✅ Vérification OK : 1 photo par désordre")
+    elif nb_img_restantes == nb_lignes_plan * 2:
+        st.success("✅ Vérification OK : 2 photos par désordre")
+    else:
+      st.error("❌ Incohérence détectée")
+      shutil.rmtree(output_folder)
+      st.stop()
     
     st.success("✅ Nombre de photos par désordre cohérent")
     
@@ -155,5 +155,6 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
