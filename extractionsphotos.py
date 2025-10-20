@@ -60,9 +60,9 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     if st.session_state.progress_photos == 0:
         extraction_photos_msg = st.info("⏳ Extraction des photos de désordres …")
         progress_bar_photos = st.progress(0)
-        for page_num in range(pages_to_extract):
-            if page_num == 0:
-                continue
+
+        # Boucle modifiée pour ignorer la première et la dernière page
+        for page_num in range(1, pages_to_extract - 1):  
             page = doc[page_num]
             images = page.get_images(full=True)
             nb_images_restantes = len(images) - 1
@@ -92,7 +92,9 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         st.session_state.progress_plans = 0
     if st.session_state.progress_plans == 0:
         extraction_plans_msg = st.info("⏳ Extraction des plans …")
-        last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
+
+        # Ignorer la dernière page
+        last_pages = range(len(doc) - st.session_state.nb_unique, len(doc) - 1)
         st.session_state.tailles_pages = []
         for idx, page_num in enumerate(last_pages, start=1):
             page = doc[page_num]
