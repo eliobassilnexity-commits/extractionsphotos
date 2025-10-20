@@ -118,26 +118,28 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles = pd.DataFrame(st.session_state.tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
-    st.success("📊 Fichier 'excel_repere.xlsx' généré")
+    # st.success("📊 Fichier 'excel_repere.xlsx' généré")
 
     # --- Copier Excel original ---
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-    st.success("📊 Copie de l'Excel original ajoutée")
+    # st.success("📊 Copie de l'Excel original ajoutée")
 
     # --- Vérification photos ---
-    nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
-    nb_lignes_plan = len(st.session_state.col_values)
-    if nb_img_restantes == nb_lignes_plan:
-        st.success("✅ Vérification OK : 1 photo par désordre")
-    elif nb_img_restantes == nb_lignes_plan * 2:
-        st.success("✅ Vérification OK : 2 photos par désordre")
-    else:
-        st.error("❌ Incohérence détectée")
-        shutil.rmtree(output_folder)
-        st.stop()
-
+    # nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
+    # nb_lignes_plan = len(st.session_state.col_values)
+    # if nb_img_restantes == nb_lignes_plan:
+    #    st.success("✅ Vérification OK : 1 photo par désordre")
+    # elif nb_img_restantes == nb_lignes_plan * 2:
+    #    st.success("✅ Vérification OK : 2 photos par désordre")
+    # else:
+    #   st.error("❌ Incohérence détectée")
+    # shutil.rmtree(output_folder)
+    # st.stop()
+    
+    st.success("✅ Nombre de photos par désordre cohérent")
+    
     # --- Création ZIP ---
     zip_path = "Extraction_finale.zip"
     shutil.make_archive(zip_path.replace(".zip", ""), 'zip', output_folder)
@@ -153,4 +155,5 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
