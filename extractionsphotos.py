@@ -16,6 +16,9 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
 """)
 
+if st.button("🔄 Rafraîchir la page"):
+    st.experimental_rerun()
+            
 # --- INITIALISATION session_state ---
 for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 
             'extracted', 'zip_path', 'progress_photos', 'progress_plans', 'tailles_pages']:
@@ -156,3 +159,4 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
