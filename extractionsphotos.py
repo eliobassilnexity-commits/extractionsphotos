@@ -110,13 +110,13 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles = pd.DataFrame(st.session_state.tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
-    st.success("📊 Fichier 'excel_repere.xlsx' généré")
+    # st.success("📊 Fichier 'excel_repere.xlsx' généré")
 
     # --- Copier Excel original ---
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-    st.success("📊 Copie de l'Excel original ajoutée")
+    # st.success("📊 Copie de l'Excel original ajoutée")
 
     # --- Vérification photos ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -156,3 +156,4 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
