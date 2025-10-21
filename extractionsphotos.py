@@ -15,12 +15,27 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 - Les plans
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
 """)
-           
+
 # --- INITIALISATION session_state ---
 for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 
             'extracted', 'zip_path', 'progress_photos', 'progress_plans', 'tailles_pages']:
     if key not in st.session_state:
         st.session_state[key] = None
+
+# --- Bouton pour rafraîchir la page ---
+refresh = st.button("🔄 Rafraîchir la page")
+if refresh:
+    # Réinitialiser les états si nécessaire
+    st.session_state.uploaded_excel = None
+    st.session_state.uploaded_pdf = None
+    st.session_state.extracted = False
+    st.session_state.zip_path = None
+    st.session_state.progress_photos = None
+    st.session_state.progress_plans = None
+    st.session_state.tailles_pages = None
+    st.session_state.col_values = None
+    st.session_state.nb_unique = None
+    st.experimental_rerun()
 
 # --- Upload Excel ---
 col1, col2 = st.columns(2)
@@ -122,7 +137,6 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
 
-    # Première vérification : ignorer la dernière page
     nb_images_derniere_page = len(doc[pages_to_extract - 1].get_images(full=True)) - 1
     nb_photos_sans_derniere_page = nb_img_restantes - nb_images_derniere_page
 
@@ -131,7 +145,6 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     elif nb_photos_sans_derniere_page == nb_lignes_plan * 2:
         st.success("✅ Vérification OK : 2 photos par désordre (hors dernière page)")
     else:
-        # Vérification finale : inclure toutes les photos
         if nb_img_restantes == nb_lignes_plan:
             st.success("✅ Vérification finale OK : 1 photo par désordre (toutes pages)")
         elif nb_img_restantes == nb_lignes_plan * 2:
@@ -156,7 +169,3 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-        
-if st.button("🔄 Rafraîchir la page"):
-    st.experimental_rerun()
-
