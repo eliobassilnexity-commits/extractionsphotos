@@ -5,6 +5,7 @@ import io
 import pandas as pd
 import os
 import shutil
+import re
 
 st.set_page_config(page_title="Extraction des photos et des plans Archipad", layout="wide")
 st.title("📄 Extraction des photos et des plans Archipad")
@@ -18,7 +19,7 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 
 # --- INITIALISATION session_state ---
 for key in ['uploaded_excel', 'uploaded_pdf', 'col_values', 'nb_unique', 
-            'extracted', 'zip_path', 'progress_photos', 'progress_plans', 'tailles_pages']:
+            'extracted', 'zip_path', 'progress_photos', 'progress_plans', 'tailles_pages', 'plan_names']:
     if key not in st.session_state:
         st.session_state[key] = None
 
@@ -29,9 +30,24 @@ with col1:
     if uploaded_excel is not None:
         st.session_state.uploaded_excel = uploaded_excel
         df = pd.read_excel(uploaded_excel, sheet_name="Observations")
-        st.session_state.col_values = df["Plan"].dropna().tolist()
-        st.session_state.nb_unique = len(set(st.session_state.col_values))
-        st.success("✅ Rapport Excel Archipad importé avec succès !")
+
+        # On prend les noms des plans dans la colonne H
+        col_values = df["Plan"].dropna().astype(str).tolist()
+
+        # On nettoie les extensions (".pdf", ".png", ".jpg", etc.)
+        cleaned_plan_names = []
+        for name in col_values:
+            clean_name = re.sub(r'\.[a-zA-Z0-9]+$', '', name.strip())  # supprime extension éventuelle
+            cleaned_plan_names.append(clean_name)
+
+        # Plans uniques en conservant l’ordre d’apparition
+        unique_plan_names = list(dict.fromkeys(cleaned_plan_names))
+
+        st.session_state.col_values = cleaned_plan_names
+        st.session_state.nb_unique = len(unique_plan_names)
+        st.session_state.plan_names = unique_plan_names
+
+        st.success(f"✅ Rapport Excel importé : {st.session_state.nb_unique} plan(s) unique(s) détecté(s)")
 
 # --- Upload PDF ---
 with col2:
@@ -89,19 +105,26 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         extraction_plans_msg = st.info("⏳ Extraction des plans …")
         last_pages = range(len(doc) - st.session_state.nb_unique, len(doc))
         st.session_state.tailles_pages = []
-        for idx, page_num in enumerate(last_pages, start=1):
+
+        # Utiliser les noms uniques issus d'Excel
+        plan_names = st.session_state.plan_names
+
+        for idx, page_num in enumerate(last_pages):
+            plan_name = plan_names[idx] if idx < len(plan_names) else f"Plan_{idx+1}"
+            safe_name = re.sub(r'[\\/*?:"<>|]', "_", plan_name)  # retire caractères illégaux
+
             page = doc[page_num]
             rect = page.rect
             st.session_state.tailles_pages.append({
-                "Plan": f"P{idx}",
+                "Plan": safe_name,
                 "Largeur (pt)": rect.width,
                 "Hauteur (pt)": rect.height
             })
             pix = page.get_pixmap(dpi=200)
-            page_filename = f"P{idx}.png"
+            page_filename = f"{safe_name}.png"
             pix.save(os.path.join(output_folder, page_filename))
         extraction_plans_msg.empty()
-        st.success("✅ Plans extraits")
+        st.success("✅ Plans extraits et renommés selon le fichier Excel")
         st.session_state.progress_plans = 1
     else:
         st.success("✅ Plans déjà extraits")
@@ -110,19 +133,16 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles = pd.DataFrame(st.session_state.tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
-    # st.success("📊 Fichier 'excel_repere.xlsx' généré")
 
     # --- Copier Excel original ---
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-    # st.success("📊 Copie de l'Excel original ajoutée")
 
     # --- Vérification photos ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
 
-    # Première vérification : ignorer la dernière page
     nb_images_derniere_page = len(doc[pages_to_extract - 1].get_images(full=True)) - 1
     nb_photos_sans_derniere_page = nb_img_restantes - nb_images_derniere_page
 
@@ -131,7 +151,6 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     elif nb_photos_sans_derniere_page == nb_lignes_plan * 2:
         st.success("✅ Vérification OK : 2 photos par désordre (hors dernière page)")
     else:
-        # Vérification finale : inclure toutes les photos
         if nb_img_restantes == nb_lignes_plan:
             st.success("✅ Vérification finale OK : 1 photo par désordre (toutes pages)")
         elif nb_img_restantes == nb_lignes_plan * 2:
@@ -156,4 +175,6 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
+
 
