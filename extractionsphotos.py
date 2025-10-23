@@ -17,7 +17,7 @@ Cette application permet d'extraire depuis les rapports d'Archipad :
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
 - Une copie du fichier excel archipad importé
 
-(Pour pouvoir réutiliser l'application à nouveau, il faudra rafraichir la page)
+(Pour pouvoir réutiliser l’application, il faudra actualiser la page.)
 """)
 
 # --- INITIALISATION session_state ---
@@ -204,6 +204,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
