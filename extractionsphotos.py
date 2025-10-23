@@ -164,7 +164,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-    st.success("✅ Copie du fichier excel archipad crée")
+    st.success("✅ Copie du fichier excel archipad créée")
                     
     # --- Vérification photos (globale, conservée) ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -202,5 +202,6 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
