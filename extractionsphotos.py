@@ -98,8 +98,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
                     extraction_photos_msg.empty()
                     progress_bar_photos.empty()
                     st.error(
-                        f"❌ Incohérence détectée : la page {page_num + 1} contient {nb_photos_page} photo(s) extraites, "
-                        f"alors que 3 ou 6 étaient attendues. Le traitement est interrompu."
+                        f"❌ Incohérence de nombre de photo par désordre détectée à la page {page_num + 1}. Revoir le projet sur Archipad, extrait de nouveau le rapport PDF et excel et revient ici pour le traitement"
                     )
                     if os.path.exists(output_folder):
                         shutil.rmtree(output_folder)
@@ -201,3 +200,4 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
