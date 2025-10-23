@@ -149,21 +149,23 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             page_filename = f"{safe_name}.png"
             pix.save(os.path.join(output_folder, page_filename))
         extraction_plans_msg.empty()
-        # st.success("✅ Plans extraits et renommés selon le fichier Excel")
+        st.success("✅ Plans extraits")
         st.session_state.progress_plans = 1
-    # else:
-        # st.success("✅ Plans déjà extraits")
+    else:
+        st.success("✅ Plans extraits")
 
     # --- Excel repère ---
     df_tailles = pd.DataFrame(st.session_state.tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
+    st.success("✅ Fichier excel repère crée")
 
     # --- Copier Excel original ---
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-
+    st.success("✅ Copie du fichier excel archipad crée")
+                    
     # --- Vérification photos (globale, conservée) ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
@@ -200,4 +202,5 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
