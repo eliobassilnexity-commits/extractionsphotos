@@ -127,7 +127,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         extraction_plans_msg.empty()
         # st.success("✅ Plans extraits et renommés selon le fichier Excel")
         st.session_state.progress_plans = 1
-    else:
+    # else:
         # st.success("✅ Plans déjà extraits")
 
     # --- Excel repère ---
@@ -176,6 +176,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
