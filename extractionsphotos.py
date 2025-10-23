@@ -69,7 +69,8 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
 
     doc = fitz.open(stream=st.session_state.uploaded_pdf.read(), filetype="pdf")
     count = 0
-    pages_to_extract = len(doc) - st.session_state.nb_unique
+    pages_to_extract = len(doc) - st.session_state.nb_unique  # pages avec photos
+    photo_last_page_idx = pages_to_extract - 1                 # dernière page "photos" (exclue du contrôle 3/6)
 
     # --- Photos ---
     if st.session_state.progress_photos is None:
@@ -79,9 +80,32 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         progress_bar_photos = st.progress(0)
         for page_num in range(pages_to_extract):
             if page_num == 0:
+                # On continue à ignorer la première page comme dans ton code d'origine
+                progress_bar_photos.progress((page_num+1)/pages_to_extract)
                 continue
+
             page = doc[page_num]
             images = page.get_images(full=True)
+
+            # --- 🔎 Vérification de cohérence page par page (3 ou 6 photos) ---
+            # On contrôle toutes les pages "photos" SAUF la dernière (photo_last_page_idx)
+            # Le nombre de photos extraites par page correspond à len(images) - 1,
+            # car on saute systématiquement la première image (images[1:], arrière-plan).
+            if page_num != photo_last_page_idx:
+                nb_photos_page = max(len(images) - 1, 0)
+                if nb_photos_page not in (3, 6):
+                    # Nettoyage visuel et suppression du dossier temporaire avant arrêt
+                    extraction_photos_msg.empty()
+                    progress_bar_photos.empty()
+                    st.error(
+                        f"❌ Incohérence détectée : la page {page_num + 1} contient {nb_photos_page} photo(s) extraites, "
+                        f"alors que 3 ou 6 étaient attendues. Le traitement est interrompu."
+                    )
+                    if os.path.exists(output_folder):
+                        shutil.rmtree(output_folder)
+                    st.stop()
+
+            # --- Extraction effective des images de la page (en conservant le comportement existant) ---
             for img_index, img in enumerate(images[1:], start=2):
                 xref = img[0]
                 base_image = doc.extract_image(xref)
@@ -91,7 +115,9 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
                 count += 1
                 image_filename = f"img{count}.{image_ext}"
                 image.save(os.path.join(output_folder, image_filename))
+
             progress_bar_photos.progress((page_num+1)/pages_to_extract)
+
         extraction_photos_msg.empty()
         progress_bar_photos.empty()
         st.success("✅ Photos extraites")
@@ -113,7 +139,6 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         for idx, page_num in enumerate(last_pages):
             plan_name = plan_names[idx] if idx < len(plan_names) else f"Plan_{idx+1}"
             safe_name = re.sub(r'[\\/*?:"<>|]', "_", plan_name)  # retire caractères illégaux
-
             page = doc[page_num]
             rect = page.rect
             st.session_state.tailles_pages.append({
@@ -140,7 +165,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
 
-    # --- Vérification photos ---
+    # --- Vérification photos (globale, conservée) ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
     nb_lignes_plan = len(st.session_state.col_values)
 
@@ -176,8 +201,3 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
-
-
-
-
