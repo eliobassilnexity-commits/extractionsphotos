@@ -12,9 +12,10 @@ st.title("📄 Extraction des photos et des plans Archipad")
 
 st.markdown("""
 Cette application permet d'extraire depuis les rapports d'Archipad :
-- Les photos des désordres
+- Les photos des désordres (avant de lancer cette application, s'assurer sur archipad que chaque désordre possède 1 ou 2 photos)
 - Les plans
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
+- Une copie du fichier excel archipad importé
 """)
 
 # --- INITIALISATION session_state ---
@@ -47,7 +48,7 @@ with col1:
         st.session_state.nb_unique = len(unique_plan_names)
         st.session_state.plan_names = unique_plan_names
 
-        st.success(f"✅ Rapport Excel importé : {st.session_state.nb_unique} plan(s) unique(s) détecté(s)")
+        st.success(f"✅ Rapport Excel archipad importé avec succès !")
 
 # --- Upload PDF ---
 with col2:
@@ -96,7 +97,7 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         st.success("✅ Photos extraites")
         st.session_state.progress_photos = 1
     else:
-        st.success("✅ Photos déjà extraites")
+        st.success("✅ Photos extraites")
 
     # --- Plans ---
     if st.session_state.progress_plans is None:
@@ -124,10 +125,10 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             page_filename = f"{safe_name}.png"
             pix.save(os.path.join(output_folder, page_filename))
         extraction_plans_msg.empty()
-        st.success("✅ Plans extraits et renommés selon le fichier Excel")
+        # st.success("✅ Plans extraits et renommés selon le fichier Excel")
         st.session_state.progress_plans = 1
     else:
-        st.success("✅ Plans déjà extraits")
+        # st.success("✅ Plans déjà extraits")
 
     # --- Excel repère ---
     df_tailles = pd.DataFrame(st.session_state.tailles_pages)
@@ -175,6 +176,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
