@@ -20,7 +20,7 @@ st.title("📄 Extraction des photos et des plans Archipad")
 
 st.markdown("""
 Cette application permet d'extraire depuis les rapports d'Archipad :
-- Les photos des désordres (avant de lancer cette application, s'assurer sur archipad que chaque désordre possède 1 ou 2 photos)
+- Les photos des désordres (avant de lancer cette application, s'assurer sur archipad que chaque désordre possède 2 photos)
 - Les plans
 - Un fichier Excel "repère" indiquant les dimensions (en points) des pages de plans
 - Une copie du fichier excel archipad importé
@@ -212,6 +212,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
