@@ -101,18 +101,18 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
             # On contrôle toutes les pages "photos" SAUF la dernière (photo_last_page_idx)
             # Le nombre de photos extraites par page correspond à len(images) - 1,
             # car on saute systématiquement la première image (images[1:], arrière-plan).
-           if page_num != photo_last_page_idx:
-               nb_photos_page = max(len(images) - 1, 0)
-               if nb_photos_page not in (3, 6):
+            if page_num != photo_last_page_idx:
+                nb_photos_page = max(len(images) - 1, 0)
+                if nb_photos_page not in (3, 6):
                     # Nettoyage visuel et suppression du dossier temporaire avant arrêt
-                   extraction_photos_msg.empty()
-                   progress_bar_photos.empty()
+                    extraction_photos_msg.empty()
+                    progress_bar_photos.empty()
                     st.error(
-                       f"❌ Incohérence détectée dans le nombre de photos par désordre à la page {page_num + 1}. Corrige celà directement sur le projet Archipad, exporte à nouveau les rapports PDF et Excel, puis reviens ici pour le traitement."
+                        f"❌ Incohérence détectée dans le nombre de photos par désordre à la page {page_num + 1}. Corrige celà directement sur le projet Archipad, exporte à nouveau les rapports PDF et Excel, puis reviens ici pour le traitement."
                     )
                     if os.path.exists(output_folder):
-                       shutil.rmtree(output_folder)
-                   st.stop()
+                        shutil.rmtree(output_folder)
+                    st.stop()
 
             # --- Extraction effective des images de la page (en conservant le comportement existant) ---
             for img_index, img in enumerate(images[1:], start=2):
@@ -212,8 +212,6 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
-
-
 
 
 
