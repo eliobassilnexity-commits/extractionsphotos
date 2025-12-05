@@ -58,14 +58,14 @@ with col1:
         st.session_state.nb_unique = len(unique_plan_names)
         st.session_state.plan_names = unique_plan_names
 
-        st.success(f"✅ Rapport Excel archipad importé avec succès !")
+        # st.success(f"✅ Rapport Excel archipad importé avec succès !")
 
 # --- Upload PDF ---
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf", key="pdf_uploader")
     if uploaded_pdf is not None:
         st.session_state.uploaded_pdf = uploaded_pdf
-        st.success("✅ Rapport PDF Archipad importé avec succès !")
+        # st.success("✅ Rapport PDF Archipad importé avec succès !")
 
 # --- Extraction ---
 if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf 
@@ -168,13 +168,13 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
     df_tailles = pd.DataFrame(st.session_state.tailles_pages)
     excel_repere_path = os.path.join(output_folder, "excel_repere.xlsx")
     df_tailles.to_excel(excel_repere_path, index=False)
-    st.success("✅ Fichier excel repère crée")
+    # st.success("✅ Fichier excel repère crée")
 
     # --- Copier Excel original ---
     excel_orig_copy_path = os.path.join(output_folder, "excelarchipad.xlsx")
     with open(excel_orig_copy_path, "wb") as f:
         f.write(st.session_state.uploaded_excel.getbuffer())
-    st.success("✅ Copie du fichier excel archipad créée")
+    # st.success("✅ Copie du fichier excel archipad créée")
                     
     # --- Vérification photos (globale, conservée) ---
     nb_img_restantes = len([f for f in os.listdir(output_folder) if f.startswith("img")])
@@ -212,6 +212,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
