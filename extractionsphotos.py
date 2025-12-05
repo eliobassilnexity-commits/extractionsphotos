@@ -58,14 +58,14 @@ with col1:
         st.session_state.nb_unique = len(unique_plan_names)
         st.session_state.plan_names = unique_plan_names
 
-        # st.success(f"✅ Rapport Excel archipad importé avec succès !")
+        st.success(f"✅ Rapport Excel archipad importé avec succès !")
 
 # --- Upload PDF ---
 with col2:
     uploaded_pdf = st.file_uploader("📂 Choisis ton fichier PDF Archipad", type="pdf", key="pdf_uploader")
     if uploaded_pdf is not None:
         st.session_state.uploaded_pdf = uploaded_pdf
-        # st.success("✅ Rapport PDF Archipad importé avec succès !")
+        st.success("✅ Rapport PDF Archipad importé avec succès !")
 
 # --- Extraction ---
 if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf 
@@ -212,6 +212,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
