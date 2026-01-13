@@ -193,9 +193,9 @@ if (st.session_state.uploaded_excel and st.session_state.uploaded_pdf
         elif nb_img_restantes == nb_lignes_plan * 2:
             st.success("✅ Vérification finale OK : 2 photos par désordre (toutes pages)")
         else:
-            st.error(f"❌ Incohérence détectée dans le nombre de photos par désordre. Corrige celà directement sur le projet Archipad, exporte à nouveau les rapports PDF et Excel, puis reviens ici pour le traitement.")
-            shutil.rmtree(output_folder)
-            st.stop()
+           # st.error(f"❌ Incohérence détectée dans le nombre de photos par désordre. Corrige celà directement sur le projet Archipad, exporte à nouveau les rapports PDF et Excel, puis reviens ici pour le traitement.")
+           # shutil.rmtree(output_folder)
+           # st.stop()
 
     # --- Création ZIP ---
     zip_path = "Extraction_finale.zip"
@@ -212,6 +212,7 @@ if st.session_state.extracted and st.session_state.zip_path is not None:
             file_name="Extraction_finale.zip",
             mime="application/zip"
         )
+
 
 
 
